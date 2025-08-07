@@ -5,6 +5,7 @@ import online.bookstore.model.Book;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.Transaction;
+import org.junit.jupiter.params.shadow.com.univocity.parsers.common.DataProcessingException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
@@ -31,7 +32,7 @@ public class BookRepositoryImpl implements BookRepository {
             if (transaction != null) {
                 transaction.rollback();
             }
-            throw new RuntimeException("Can't save book: " + book);
+            throw new DataProcessingException("Can't save book: " + book);
         } finally {
             if (session != null) {
                 session.close();
@@ -43,7 +44,7 @@ public class BookRepositoryImpl implements BookRepository {
         try (Session session = sessionFactory.openSession()) {
             return session.createQuery("SELECT b from Book b", Book.class).getResultList();
         } catch (Exception e) {
-            throw new RuntimeException("Can't get all books", e);
+            throw new DataProcessingException("Can't get all books", e);
         }
     }
 }
