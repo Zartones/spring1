@@ -1,11 +1,11 @@
 package online.bookstore.repository;
 
 import java.util.List;
+import online.bookstore.exception.DataProcessingException;
 import online.bookstore.model.Book;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.Transaction;
-import online.bookstore.exception.DataProcessingException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
@@ -39,6 +39,7 @@ public class BookRepositoryImpl implements BookRepository {
             }
         }
     }
+
     @Override
     public List<Book> findAll() {
         try (Session session = sessionFactory.openSession()) {
