@@ -5,7 +5,7 @@ import online.bookstore.model.Book;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.Transaction;
-import org.junit.jupiter.params.shadow.com.univocity.parsers.common.DataProcessingException;
+import online.bookstore.exception.DataProcessingException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
