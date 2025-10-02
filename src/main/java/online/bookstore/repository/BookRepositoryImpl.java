@@ -51,11 +51,11 @@ public class BookRepositoryImpl implements BookRepository {
     }
 
     @Override
-    public Optional<Book> getBookBId(Long id) {
+    public Optional<Book> getBookById(Long id) {
         try (Session session = sessionFactory.openSession()) {
             return Optional.ofNullable(session.get(Book.class, id));
         } catch (Exception e) {
-            throw new DataProcessingException("Can't get a book", e);
+            throw new DataProcessingException("Can't get a book by id: " + id, e);
         }
     }
 }
