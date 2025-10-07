@@ -33,6 +33,7 @@ public class BookController {
         return bookService.getBookById(id);
     }
 
+    @ResponseStatus(HttpStatus.CREATED)
     @PostMapping
     public BookDto createBook(@RequestBody CreateBookRequestDto bookRequestDto) {
         return bookService.save(bookRequestDto);
