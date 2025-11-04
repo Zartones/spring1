@@ -1,5 +1,7 @@
 package online.bookstore.exception;
 
+import static org.springframework.http.HttpStatus.BAD_REQUEST;
+
 import java.time.LocalDateTime;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -31,7 +33,7 @@ public class CustomGlobalExceptionHandler extends ResponseEntityExceptionHandler
                 .map(this::getErrorMessage)
                 .toList();
         body.put("errors", errors);
-        return new ResponseEntity<>(body, headers, status);
+        return new ResponseEntity<>(body, headers, BAD_REQUEST);
     }
 
     @ExceptionHandler(EntityNotFoundException.class)
