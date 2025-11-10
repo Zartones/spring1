@@ -1,6 +1,5 @@
 package online.bookstore.service;
 
-import java.util.List;
 import lombok.RequiredArgsConstructor;
 import online.bookstore.dto.BookDto;
 import online.bookstore.dto.BookSearchParameters;
@@ -10,6 +9,8 @@ import online.bookstore.mapper.BookMapper;
 import online.bookstore.model.Book;
 import online.bookstore.repository.book.BookRepository;
 import online.bookstore.repository.book.BookSpecificationBuilder;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
@@ -28,10 +29,10 @@ public class BookServiceImpl implements BookService {
     }
 
     @Override
-    public List<BookDto> findAll(Pageable pageable) {
-        return bookRepository.findAll(pageable).stream()
+    public Page<BookDto> findAll(Pageable pageable) {
+        return new PageImpl<>(bookRepository.findAll(pageable).stream()
                 .map(bookMapper::toDto)
-                .toList();
+                .toList());
     }
 
     @Override
@@ -55,12 +56,12 @@ public class BookServiceImpl implements BookService {
     }
 
     @Override
-    public List<BookDto> search(BookSearchParameters bookSearchParameters, Pageable pageable) {
+    public Page<BookDto> search(BookSearchParameters bookSearchParameters, Pageable pageable) {
         Specification<Book> specification = bookSpecificationBuilder.build(bookSearchParameters);
-        return bookRepository.findAll(specification, pageable)
+        return new PageImpl<>(bookRepository.findAll(specification, pageable)
                 .stream()
                 .map(bookMapper::toDto)
-                .toList();
+                .toList());
     }
 
 }
