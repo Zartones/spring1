@@ -17,8 +17,8 @@ public @interface FieldMatch {
 
     Class<? extends Payload>[] payload() default {};
 
-    String str1();
+    String firstField();
 
-    String str2();
+    String secondField();
 
 }

@@ -7,7 +7,7 @@ import online.bookstore.annotation.FieldMatch;
 import org.hibernate.validator.constraints.Length;
 
 @Data
-@FieldMatch(str1 = "password", str2 = "repeatPassword",
+@FieldMatch(firstField = "password", secondField = "repeatPassword",
         message = "Passwords don't match")
 public class UserRegistrationRequestDto {
     @NotBlank

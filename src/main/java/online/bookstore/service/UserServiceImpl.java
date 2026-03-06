@@ -20,11 +20,12 @@ public class UserServiceImpl implements UserService {
     public UserResponseDto register(UserRegistrationRequestDto requestDto)
             throws RegistrationException {
         if (userRepository.findByEmail(requestDto.getEmail()).isPresent()) {
-            throw new RegistrationException("Registration failed");
+            throw new RegistrationException("User with email: "
+                    + requestDto.getEmail() + " already exists");
         }
         User user = userMapper.toUser(requestDto);
 
-        User savedUser = userRepository.save(user);
-        return userMapper.toUserResponse(savedUser);
+        userRepository.save(user);
+        return userMapper.toUserResponse(user);
     }
 }
