@@ -6,7 +6,6 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import online.bookstore.dto.user.UserRegistrationRequestDto;
 import online.bookstore.dto.user.UserResponseDto;
-import online.bookstore.exception.RegistrationException;
 import online.bookstore.service.UserService;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
