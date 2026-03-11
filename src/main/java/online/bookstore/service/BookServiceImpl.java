@@ -1,9 +1,9 @@
 package online.bookstore.service;
 
 import lombok.RequiredArgsConstructor;
-import online.bookstore.dto.BookDto;
-import online.bookstore.dto.BookSearchParameters;
-import online.bookstore.dto.CreateBookRequestDto;
+import online.bookstore.dto.book.BookDto;
+import online.bookstore.dto.book.BookSearchParameters;
+import online.bookstore.dto.book.CreateBookRequestDto;
 import online.bookstore.exception.EntityNotFoundException;
 import online.bookstore.mapper.BookMapper;
 import online.bookstore.model.Book;

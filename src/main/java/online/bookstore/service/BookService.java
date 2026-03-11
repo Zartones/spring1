@@ -1,8 +1,8 @@
 package online.bookstore.service;
 
-import online.bookstore.dto.BookDto;
-import online.bookstore.dto.BookSearchParameters;
-import online.bookstore.dto.CreateBookRequestDto;
+import online.bookstore.dto.book.BookDto;
+import online.bookstore.dto.book.BookSearchParameters;
+import online.bookstore.dto.book.CreateBookRequestDto;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
