@@ -2,13 +2,12 @@ package online.bookstore.dto.user;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotEmpty;
 import lombok.Data;
 import org.hibernate.validator.constraints.Length;
 
 @Data
 public class UserLoginRequestDto {
-    @NotEmpty
+    @NotBlank
     @Email
     private String email;
 
