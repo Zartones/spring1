@@ -53,7 +53,7 @@ public class ShoppingCartController {
     @PreAuthorize("hasRole('USER')")
     @Operation(summary = "Remove item")
     @DeleteMapping("items/{cartItemId}")
-    public void removeItems(@PathVariable Long cartItemId) {
-        shoppingCartService.removeItem(cartItemId);
+    public void removeItems(@AuthenticationPrincipal User user, @PathVariable Long cartItemId) {
+        shoppingCartService.removeItem(user.getId(), cartItemId);
     }
 }
