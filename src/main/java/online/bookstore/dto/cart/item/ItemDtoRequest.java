@@ -8,9 +8,9 @@ import lombok.Data;
 public class ItemDtoRequest {
 
     @NotNull
+    @Positive
     private Long bookId;
 
-    @NotNull
     @Positive
     private int quantity;
 }
