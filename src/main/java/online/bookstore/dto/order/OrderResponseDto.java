@@ -4,12 +4,12 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.Set;
 import lombok.Data;
-import online.bookstore.model.OrderItem;
+import online.bookstore.dto.order.item.OrderItemResponseDto;
 import online.bookstore.model.Status;
 import online.bookstore.model.User;
 
 @Data
-public class OrderDtoResponse {
+public class OrderResponseDto {
     private Long id;
 
     private User user;
@@ -20,5 +20,5 @@ public class OrderDtoResponse {
 
     private LocalDateTime orderDate;
 
-    private Set<OrderItem> orderItems;
+    private Set<OrderItemResponseDto> orderItems;
 }

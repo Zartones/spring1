@@ -5,8 +5,9 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import online.bookstore.dto.order.OrderDtoRequest;
-import online.bookstore.dto.order.OrderDtoResponse;
-import online.bookstore.dto.order.item.OrderItemDtoResponse;
+import online.bookstore.dto.order.OrderResponseDto;
+import online.bookstore.dto.order.item.OrderItemResponseDto;
+import online.bookstore.model.Status;
 import online.bookstore.model.User;
 import online.bookstore.service.OrderService;
 import org.springframework.data.domain.Page;
@@ -31,7 +32,7 @@ public class OrderController {
     @PreAuthorize("hasRole('USER')")
     @PostMapping
     @Operation(summary = "Add an Order")
-    public OrderDtoResponse addOrder(@AuthenticationPrincipal User user,
+    public OrderResponseDto addOrder(@AuthenticationPrincipal User user,
                                      @Valid @RequestBody OrderDtoRequest orderDtoRequest) {
         return orderService.saveOrder(user.getId(), orderDtoRequest);
     }
@@ -39,7 +40,7 @@ public class OrderController {
     @PreAuthorize("hasRole('USER')")
     @GetMapping
     @Operation(summary = "Get user's history of orders")
-    public Page<OrderDtoResponse> getAllOrders(@AuthenticationPrincipal User user,
+    public Page<OrderResponseDto> getAllOrders(@AuthenticationPrincipal User user,
                                                Pageable pageable) {
         return orderService.getOrders(pageable, user.getId());
     }
@@ -47,16 +48,16 @@ public class OrderController {
     @PreAuthorize("hasRole('ADMIN')")
     @PatchMapping("/{id}")
     @Operation(summary = "Update order's quantity")
-    public OrderDtoResponse updateOrder(@AuthenticationPrincipal User user,
+    public OrderResponseDto updateOrder(@AuthenticationPrincipal User user,
                                         @PathVariable Long id,
-                                        @Valid @RequestBody OrderDtoRequest orderDtoRequest) {
-        return orderService.update(user.getId(), id, orderDtoRequest.getStatus());
+                                        @Valid @RequestBody Status status) {
+        return orderService.update(user.getId(), id, status);
     }
 
     @PreAuthorize("hasRole('USER')")
     @GetMapping("/{orderId}/items")
     @Operation(summary = "Get all items from order")
-    public Page<OrderItemDtoResponse> getAllItems(@AuthenticationPrincipal User user,
+    public Page<OrderItemResponseDto> getAllItems(@AuthenticationPrincipal User user,
                                                   @PathVariable Long orderId, Pageable pageable) {
         return orderService.getItems(pageable, user.getId(), orderId);
     }
@@ -64,7 +65,7 @@ public class OrderController {
     @PreAuthorize("hasRole('USER')")
     @GetMapping("{orderId}/items/{itemId}")
     @Operation(summary = "Get item from order")
-    public OrderItemDtoResponse getItem(@AuthenticationPrincipal User user,
+    public OrderItemResponseDto getItem(@AuthenticationPrincipal User user,
                                         @PathVariable Long orderId, @PathVariable Long itemId) {
         return orderService.getItem(user.getId(), orderId, itemId);
     }

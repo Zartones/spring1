@@ -4,7 +4,7 @@ import lombok.Data;
 import online.bookstore.model.Book;
 
 @Data
-public class OrderItemDtoResponse {
+public class OrderItemResponseDto {
     private Long id;
 
     private Book book;

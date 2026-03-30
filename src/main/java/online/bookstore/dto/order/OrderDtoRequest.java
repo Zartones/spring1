@@ -1,12 +1,12 @@
 package online.bookstore.dto.order;
 
+import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
-import online.bookstore.model.Status;
 
 @Data
 public class OrderDtoRequest {
 
+    @NotBlank
     private String shippingAddress;
 
-    private Status status;
 }

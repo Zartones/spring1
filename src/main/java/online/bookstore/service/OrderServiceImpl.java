@@ -3,12 +3,12 @@ package online.bookstore.service;
 import jakarta.transaction.Transactional;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.HashSet;
 import java.util.Set;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import online.bookstore.dto.order.OrderDtoRequest;
-import online.bookstore.dto.order.OrderDtoResponse;
-import online.bookstore.dto.order.item.OrderItemDtoResponse;
+import online.bookstore.dto.order.OrderResponseDto;
+import online.bookstore.dto.order.item.OrderItemResponseDto;
 import online.bookstore.exception.EntityNotFoundException;
 import online.bookstore.mapper.OrderItemMapper;
 import online.bookstore.mapper.OrderMapper;
@@ -39,7 +39,7 @@ public class OrderServiceImpl implements OrderService {
     private final UserRepository userRepository;
 
     @Override
-    public OrderDtoResponse saveOrder(Long userId, OrderDtoRequest orderDtoRequest) {
+    public OrderResponseDto saveOrder(Long userId, OrderDtoRequest orderDtoRequest) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new EntityNotFoundException("User not found for id: " + userId));
         Order order = new Order();
@@ -49,37 +49,31 @@ public class OrderServiceImpl implements OrderService {
         order.setStatus(Status.PENDING);
 
         Set<CartItem> cartItems = shoppingCartRepository.findByUserId(userId).get().getCartItems();
-        BigDecimal total = BigDecimal.ZERO;
-        Set<OrderItem> orderItems = new HashSet<>();
-        for (CartItem c : cartItems) {
-            OrderItem o = new OrderItem();
-            o.setBook(c.getBook());
-            o.setQuantity(c.getQuantity());
-            o.setOrder(order);
-            o.setPrice(c.getBook().getPrice());
-            orderItems.add(o);
 
-            BigDecimal sum = o.getPrice().multiply(new BigDecimal(o.getQuantity()));
-            total = total.add(sum);
-        }
-        order.setTotal(total);
+        Set<OrderItem> orderItems = cartItems.stream().map(orderItemMapper::toOrderItem)
+                .peek(i -> i.setOrder(order))
+                .collect(Collectors.toSet());
+
+        BigDecimal total = orderItems.stream()
+                .map(i -> i.getPrice()
+                        .multiply(BigDecimal.valueOf(i.getQuantity())))
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
         order.setOrderItems(orderItems);
-
+        order.setTotal(total);
         return orderMapper.toOrderResponse(order);
     }
 
     @Override
-    public Page<OrderDtoResponse> getOrders(Pageable pageable, Long userId) {
+    public Page<OrderResponseDto> getOrders(Pageable pageable, Long userId) {
         return new PageImpl<>(orderRepository.findAllByUserId(userId, pageable).stream()
                 .map(orderMapper::toOrderResponse)
                 .toList());
     }
 
     @Override
-    public OrderDtoResponse update(Long userId, Long orderId, Status status) {
-        Order order = orderRepository.findByIdAndUserId(orderId, userId)
-                .orElseThrow(() ->
-                        new EntityNotFoundException("Order not found for id: " + orderId));
+    public OrderResponseDto update(Long userId, Long orderId, Status status) {
+        Order order = findOrderByUserAndId(orderId, userId);
         order.setStatus(status);
         orderRepository.save(order);
 
@@ -87,10 +81,8 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
-    public Page<OrderItemDtoResponse> getItems(Pageable pageable, Long userId, Long orderId) {
-        Order order = orderRepository.findByIdAndUserId(orderId, userId)
-                .orElseThrow(() ->
-                        new EntityNotFoundException("Order not found for id: " + orderId));
+    public Page<OrderItemResponseDto> getItems(Pageable pageable, Long userId, Long orderId) {
+        Order order = findOrderByUserAndId(orderId, userId);
 
         return new PageImpl<>(orderItemRepository.findAllByOrderId(order.getId(), pageable).stream()
                 .map(orderItemMapper::toOrderItemResponse)
@@ -98,13 +90,15 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
-    public OrderItemDtoResponse getItem(Long userId, Long orderId, Long itemId) {
-        Order order = orderRepository.findByIdAndUserId(orderId, userId)
-                .orElseThrow(() ->
-                        new EntityNotFoundException("Order not found for id: " + orderId));
-        OrderItem orderItem = orderItemRepository.findByIdAndOrderId(itemId, order.getId())
+    public OrderItemResponseDto getItem(Long userId, Long orderId, Long itemId) {
+        OrderItem orderItem = orderItemRepository.findByIdAndOrderId(itemId, orderId)
                 .orElseThrow(() ->
                         new EntityNotFoundException("Item not found for id: " + itemId));
         return orderItemMapper.toOrderItemResponse(orderItem);
+    }
+
+    private Order findOrderByUserAndId(Long orderId, Long userId) {
+        return orderRepository.findByIdAndUserId(orderId, userId).orElseThrow(() ->
+                new EntityNotFoundException("Order not found for id: " + orderId));
     }
 }
