@@ -1,6 +1,6 @@
 package online.bookstore.service;
 
-import online.bookstore.dto.order.OrderDtoRequest;
+import online.bookstore.dto.order.OrderRequestDto;
 import online.bookstore.dto.order.OrderResponseDto;
 import online.bookstore.dto.order.item.OrderItemResponseDto;
 import online.bookstore.model.Status;
@@ -9,7 +9,7 @@ import org.springframework.data.domain.Pageable;
 
 public interface OrderService {
 
-    OrderResponseDto saveOrder(Long userId, OrderDtoRequest orderDtoRequest);
+    OrderResponseDto saveOrder(Long userId, OrderRequestDto orderDtoRequest);
 
     Page<OrderResponseDto> getOrders(Pageable pageable, Long userId);
 

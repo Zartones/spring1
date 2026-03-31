@@ -4,7 +4,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import online.bookstore.dto.order.OrderDtoRequest;
+import online.bookstore.dto.order.OrderRequestDto;
 import online.bookstore.dto.order.OrderResponseDto;
 import online.bookstore.dto.order.item.OrderItemResponseDto;
 import online.bookstore.model.Status;
@@ -33,7 +33,7 @@ public class OrderController {
     @PostMapping
     @Operation(summary = "Add an Order")
     public OrderResponseDto addOrder(@AuthenticationPrincipal User user,
-                                     @Valid @RequestBody OrderDtoRequest orderDtoRequest) {
+                                     @Valid @RequestBody OrderRequestDto orderDtoRequest) {
         return orderService.saveOrder(user.getId(), orderDtoRequest);
     }
 

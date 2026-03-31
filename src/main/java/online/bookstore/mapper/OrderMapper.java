@@ -1,7 +1,7 @@
 package online.bookstore.mapper;
 
 import online.bookstore.config.MapperConfig;
-import online.bookstore.dto.order.OrderDtoRequest;
+import online.bookstore.dto.order.OrderRequestDto;
 import online.bookstore.dto.order.OrderResponseDto;
 import online.bookstore.model.Order;
 import org.mapstruct.Mapper;
@@ -10,5 +10,5 @@ import org.mapstruct.Mapper;
 public interface OrderMapper {
     OrderResponseDto toOrderResponse(Order order);
 
-    Order toModel(OrderDtoRequest orderDtoRequest);
+    Order toModel(OrderRequestDto orderDtoRequest);
 }

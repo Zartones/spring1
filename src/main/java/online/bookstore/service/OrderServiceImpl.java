@@ -6,7 +6,7 @@ import java.time.LocalDateTime;
 import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
-import online.bookstore.dto.order.OrderDtoRequest;
+import online.bookstore.dto.order.OrderRequestDto;
 import online.bookstore.dto.order.OrderResponseDto;
 import online.bookstore.dto.order.item.OrderItemResponseDto;
 import online.bookstore.exception.EntityNotFoundException;
@@ -39,7 +39,7 @@ public class OrderServiceImpl implements OrderService {
     private final UserRepository userRepository;
 
     @Override
-    public OrderResponseDto saveOrder(Long userId, OrderDtoRequest orderDtoRequest) {
+    public OrderResponseDto saveOrder(Long userId, OrderRequestDto orderDtoRequest) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new EntityNotFoundException("User not found for id: " + userId));
         Order order = new Order();

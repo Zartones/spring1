@@ -41,7 +41,7 @@ public class JwUtil {
 
             return !claimsJws.getPayload().getExpiration().before(new Date());
         } catch (JwtException | IllegalArgumentException exception) {
-            throw new JwtException("Expired or invalid JWT token");
+            return false;
         }
     }
 
