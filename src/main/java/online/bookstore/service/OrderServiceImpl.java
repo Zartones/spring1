@@ -71,7 +71,7 @@ public class OrderServiceImpl implements OrderService {
 
         order.setOrderItems(orderItems);
         order.setTotal(total);
-        return orderMapper.toOrderResponse(order);
+        return orderMapper.toOrderResponse(orderRepository.save(order));
     }
 
     @Override
