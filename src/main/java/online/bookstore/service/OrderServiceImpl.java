@@ -10,11 +10,13 @@ import online.bookstore.dto.order.OrderRequestDto;
 import online.bookstore.dto.order.OrderResponseDto;
 import online.bookstore.dto.order.item.OrderItemResponseDto;
 import online.bookstore.exception.EntityNotFoundException;
+import online.bookstore.exception.OrderProcessingException;
 import online.bookstore.mapper.OrderItemMapper;
 import online.bookstore.mapper.OrderMapper;
 import online.bookstore.model.CartItem;
 import online.bookstore.model.Order;
 import online.bookstore.model.OrderItem;
+import online.bookstore.model.ShoppingCart;
 import online.bookstore.model.Status;
 import online.bookstore.model.User;
 import online.bookstore.repository.OrderItemRepository;
@@ -48,7 +50,15 @@ public class OrderServiceImpl implements OrderService {
         order.setShippingAddress(orderMapper.toModel(orderDtoRequest).getShippingAddress());
         order.setStatus(Status.PENDING);
 
-        Set<CartItem> cartItems = shoppingCartRepository.findByUserId(userId).get().getCartItems();
+        ShoppingCart shoppingCart = shoppingCartRepository.findByUserId(userId)
+                .orElseThrow(() ->
+                        new EntityNotFoundException("Cart not found for user id: " + userId));
+
+        Set<CartItem> cartItems = shoppingCart.getCartItems();
+
+        if (cartItems.isEmpty()) {
+            throw new OrderProcessingException("Shopping cart is empty for user id: " + userId);
+        }
 
         Set<OrderItem> orderItems = cartItems.stream().map(orderItemMapper::toOrderItem)
                 .peek(i -> i.setOrder(order))

@@ -6,13 +6,12 @@ import java.util.Set;
 import lombok.Data;
 import online.bookstore.dto.order.item.OrderItemResponseDto;
 import online.bookstore.model.Status;
-import online.bookstore.model.User;
 
 @Data
 public class OrderResponseDto {
     private Long id;
 
-    private User user;
+    private Long userId;
 
     private Status status;
 
