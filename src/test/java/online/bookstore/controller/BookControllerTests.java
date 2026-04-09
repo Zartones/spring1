@@ -1,39 +1,32 @@
 package online.bookstore.controller;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.doNothing;
-import static org.mockito.Mockito.when;
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import java.math.BigDecimal;
-import java.util.List;
-import java.util.Set;
+import online.bookstore.TestUtil;
 import online.bookstore.dto.book.BookDto;
-import online.bookstore.dto.book.BookSearchParameters;
 import online.bookstore.dto.book.CreateBookRequestDto;
-import online.bookstore.model.Category;
-import online.bookstore.service.BookService;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.Pageable;
 import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithMockUser;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
+
+import java.math.BigDecimal;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 public class BookControllerTests {
@@ -42,12 +35,10 @@ public class BookControllerTests {
 
     protected static MockMvc mockMvc;
 
+    private final TestUtil testUtil = new TestUtil();
+
     @Autowired
     ObjectMapper objectMapper;
-
-    @MockitoBean
-    private BookService bookService;
-
 
     @BeforeAll
     static void beforeAll(
@@ -58,81 +49,105 @@ public class BookControllerTests {
                 .build();
     }
 
-    private CreateBookRequestDto sampleRequestDto() {
-        CreateBookRequestDto req = new CreateBookRequestDto();
-        req.setTitle("Test title");
-        req.setAuthor("Test Author");
-        req.setIsbn("Test Isbn");
-        req.setPrice(BigDecimal.valueOf(100));
-        Category category = new Category();
-        category.setId(1L);
-        req.setCategories(Set.of(category));
-        return req;
-    }
-
-    private BookDto sampleResponseDto(Long id) {
-        BookDto dto = new BookDto();
-        dto.setId(id);
-        dto.setTitle("Test title");
-        dto.setAuthor("Test Author");
-        dto.setIsbn("Test Isbn");
-        dto.setPrice(BigDecimal.valueOf(100));
-        return dto;
-    }
 
     @Test
     @WithMockUser(roles = "USER")
     @DisplayName("Get all books")
+    @Sql(scripts = "classpath:database/add-books.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+    @Sql(scripts = "classpath:database/clear-books.sql", executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
     public void getAll_asUser_returns200() throws Exception {
-        when(bookService.findAll(any(Pageable.class)))
-                .thenReturn(new PageImpl<>(List.of(sampleResponseDto(1L))));
-
         MvcResult result = mockMvc.perform(get(BASE_URL))
                 .andReturn();
+        BookDto expected = testUtil.sampleResponseDto();
+
+        String json = result.getResponse().getContentAsString();
+
+        JsonNode root = objectMapper.readTree(json);
+        JsonNode firstBook = root.get("content").get(0);
+
+        BookDto actual = objectMapper.treeToValue(firstBook, BookDto.class);
 
         assertThat(result.getResponse().getStatus()).isEqualTo(200);
-        assertThat(result.getResponse().getContentAsString()).contains("Test title");
+        assertThat(actual)
+                .usingRecursiveComparison()
+                .ignoringFields("id")
+                .withComparatorForType(BigDecimal::compareTo, BigDecimal.class)
+                .isEqualTo(expected);
     }
 
     @Test
     @WithMockUser(roles = "USER")
     @DisplayName("Get a book by id")
+    @Sql(scripts = "classpath:database/add-books.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+    @Sql(scripts = "classpath:database/clear-books.sql", executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
     public void getBookById_existingId_returns200() throws Exception {
-        when(bookService.getBookById(1L)).thenReturn(sampleResponseDto(1L));
-
         MvcResult result = mockMvc.perform(get(BASE_URL + "/1"))
                 .andReturn();
 
+        BookDto expected = testUtil.sampleResponseDto();
+
+        BookDto actual = objectMapper.readValue(
+                result.getResponse().getContentAsString(),
+                BookDto.class
+        );
+
         assertThat(result.getResponse().getStatus()).isEqualTo(200);
         assertThat(result.getResponse().getContentAsString()).contains("\"id\":1");
-        assertThat(result.getResponse().getContentAsString()).contains("Test title");
+        assertThat(actual)
+                .usingRecursiveComparison()
+                .ignoringFields("id")
+                .withComparatorForType(BigDecimal::compareTo, BigDecimal.class)
+                .isEqualTo(expected);
     }
 
     @Test
     @WithMockUser(roles = "ADMIN")
     @DisplayName("Add a book")
+    @Sql(scripts = "classpath:database/add-categories.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+    @Sql(scripts = "classpath:database/clear-books.sql", executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
     public void createBook_asAdmin_returns201() throws Exception {
-        when(bookService.save(any(CreateBookRequestDto.class))).thenReturn(sampleResponseDto(1L));
+        CreateBookRequestDto req = testUtil.sampleRequestDto();
 
         MvcResult result = mockMvc.perform(post(BASE_URL)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(sampleRequestDto())))
+                        .content(objectMapper.writeValueAsString(req)))
                 .andReturn();
 
+        BookDto expected = testUtil.sampleResponseDto();
+
+        BookDto actual = objectMapper.readValue(
+                result.getResponse().getContentAsString(),
+                BookDto.class
+        );
+
         assertThat(result.getResponse().getStatus()).isEqualTo(201);
-        assertThat(result.getResponse().getContentAsString()).contains("\"id\":1");
-        assertThat(result.getResponse().getContentAsString()).contains("Test Isbn");
+        assertThat(actual)
+                .usingRecursiveComparison()
+                .ignoringFields("id")
+                .withComparatorForType(BigDecimal::compareTo, BigDecimal.class)
+                .isEqualTo(expected);
+    }
+
+    @Test
+    @WithMockUser(roles = "ADMIN")
+    @DisplayName("Attempt to add a book with invalid data")
+    public void createBook_invalidData_returns400() throws Exception {
+        CreateBookRequestDto req = testUtil.sampleRequestDto();
+        req.setTitle("");
+
+        mockMvc.perform(post(BASE_URL)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(req)))
+                .andExpect(status().isBadRequest());
     }
 
     @Test
     @WithMockUser(roles = "ADMIN")
     @DisplayName("Update a book")
+    @Sql(scripts = "classpath:database/add-books.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+    @Sql(scripts = "classpath:database/clear-books.sql", executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
     public void updateBook_asAdmin_returns200() throws Exception {
-        BookDto updated = sampleResponseDto(1L);
-        updated.setTitle("Updated Title");
-        when(bookService.updateBook(eq(1L), any(CreateBookRequestDto.class))).thenReturn(updated);
-
-        CreateBookRequestDto req = sampleRequestDto();
+        CreateBookRequestDto req = testUtil.sampleRequestDto();
         req.setTitle("Updated Title");
 
         MvcResult result = mockMvc.perform(put(BASE_URL + "/1")
@@ -140,16 +155,41 @@ public class BookControllerTests {
                         .content(objectMapper.writeValueAsString(req)))
                 .andReturn();
 
+        BookDto expected = testUtil.sampleResponseDto();
+        expected.setTitle("Updated Title");
+
+        BookDto actual = objectMapper.readValue(
+                result.getResponse().getContentAsString(),
+                BookDto.class
+        );
+
         assertThat(result.getResponse().getStatus()).isEqualTo(200);
-        assertThat(result.getResponse().getContentAsString()).contains("Updated Title");
+        assertThat(actual)
+                .usingRecursiveComparison()
+                .ignoringFields("id")
+                .withComparatorForType(BigDecimal::compareTo, BigDecimal.class)
+                .isEqualTo(expected);
+    }
+
+    @Test
+    @WithMockUser(roles = "ADMIN")
+    @DisplayName("Update a book that does not exist")
+    public void updateBook_nonExistingId_returns404() throws Exception {
+        CreateBookRequestDto req = testUtil.sampleRequestDto();
+        long nonExistingId = 999L;
+
+        mockMvc.perform(put(BASE_URL + "/" + nonExistingId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(req)))
+                .andExpect(status().isNotFound());
     }
 
     @Test
     @WithMockUser(roles = "ADMIN")
     @DisplayName("Delete a book")
+    @Sql(scripts = "classpath:database/add-books.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+    @Sql(scripts = "classpath:database/clear-books.sql", executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
     public void deleteBook_asAdmin_returns204() throws Exception {
-        doNothing().when(bookService).deleteById(1L);
-
         MvcResult result = mockMvc.perform(delete(BASE_URL + "/1"))
                 .andReturn();
 
@@ -160,15 +200,27 @@ public class BookControllerTests {
     @Test
     @WithMockUser(roles = "USER")
     @DisplayName("Get a book by a search parameter")
+    @Sql(scripts = "classpath:database/add-books.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+    @Sql(scripts = "classpath:database/clear-books.sql", executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
     public void search_withParams_returns200() throws Exception {
-        when(bookService.search(any(BookSearchParameters.class), any(Pageable.class)))
-                .thenReturn(new PageImpl<>(List.of(sampleResponseDto(1L))));
-
         MvcResult result = mockMvc.perform(get(BASE_URL + "/search")
                         .param("title", "Test"))
                 .andReturn();
 
+        BookDto expected = testUtil.sampleResponseDto();
+
+        String json = result.getResponse().getContentAsString();
+
+        JsonNode root = objectMapper.readTree(json);
+        JsonNode firstBook = root.get("content").get(0);
+
+        BookDto actual = objectMapper.treeToValue(firstBook, BookDto.class);
+
         assertThat(result.getResponse().getStatus()).isEqualTo(200);
-        assertThat(result.getResponse().getContentAsString()).contains("Test title");
+        assertThat(actual)
+                .usingRecursiveComparison()
+                .ignoringFields("id")
+                .withComparatorForType(BigDecimal::compareTo, BigDecimal.class)
+                .isEqualTo(expected);
     }
 }

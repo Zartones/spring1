@@ -65,7 +65,7 @@ public class BookServiceTests {
         BookDto saveDto = bookService.save(request);
 
         assertThat(saveDto).isEqualTo(bookDto);
-        verify(bookRepository, times(1)).save(book);
+        verify(bookRepository).save(book);
         verifyNoMoreInteractions(bookRepository, bookMapper);
     }
 
@@ -210,6 +210,4 @@ public class BookServiceTests {
         assertThat(result.getContent().get(0)).isEqualTo(bookDto);
 
     }
-
-
 }
