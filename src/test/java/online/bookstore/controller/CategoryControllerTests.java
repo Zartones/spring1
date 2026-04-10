@@ -10,7 +10,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import online.bookstore.TestUtil;
+import online.bookstore.util.TestUtil;
 import online.bookstore.dto.book.BookDto;
 import online.bookstore.dto.category.CategoryDtoRequest;
 import online.bookstore.dto.category.CategoryDtoResponse;
@@ -35,8 +35,6 @@ public class CategoryControllerTests {
 
     protected static MockMvc mockMvc;
 
-    private final TestUtil testUtil = new TestUtil();
-
     @Autowired
     ObjectMapper objectMapper;
 
@@ -53,15 +51,15 @@ public class CategoryControllerTests {
     @WithMockUser(roles = "ADMIN")
     @DisplayName("Add a category")
     @Sql(scripts = "classpath:database/clear-categories.sql", executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
-    public void createCategory_asAdmin_returns201() throws Exception {
-        CategoryDtoRequest categoryDtoRequest = testUtil.sampleRequest();
+    public void createCategory_asAdmin_returnsCreatedCategory() throws Exception {
+        CategoryDtoRequest categoryDtoRequest = TestUtil.sampleRequest();
 
         MvcResult result = mockMvc.perform(post(BASE_URL)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(categoryDtoRequest)))
                 .andReturn();
 
-        CategoryDtoResponse expected = testUtil.sampleResponse();
+        CategoryDtoResponse expected = TestUtil.sampleResponse();
 
         CategoryDtoResponse actual = objectMapper.readValue(
                 result.getResponse().getContentAsString(),
@@ -80,11 +78,11 @@ public class CategoryControllerTests {
     @DisplayName("Get all categories")
     @Sql(scripts = "classpath:database/add-categories.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
     @Sql(scripts = "classpath:database/clear-categories.sql", executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
-    public void getAll_asUser_returns200() throws Exception {
+    public void getAll_asUser_returnsAllCategories() throws Exception {
         MvcResult result = mockMvc.perform(get(BASE_URL))
                 .andReturn();
 
-        CategoryDtoResponse expected = testUtil.sampleResponse();
+        CategoryDtoResponse expected = TestUtil.sampleResponse();
 
         String json = result.getResponse().getContentAsString();
 
@@ -105,11 +103,11 @@ public class CategoryControllerTests {
     @DisplayName("Get a category by id")
     @Sql(scripts = "classpath:database/add-categories.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
     @Sql(scripts = "classpath:database/clear-categories.sql", executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
-    public void getCategoryById_existingId_returns200() throws Exception {
+    public void getCategoryById_existingId_returnsCategoryWithId1() throws Exception {
         MvcResult result = mockMvc.perform(get(BASE_URL + "/1"))
                 .andReturn();
 
-        CategoryDtoResponse expected = testUtil.sampleResponse();
+        CategoryDtoResponse expected = TestUtil.sampleResponse();
 
         CategoryDtoResponse actual = objectMapper.readValue(
                 result.getResponse().getContentAsString(),
@@ -127,7 +125,7 @@ public class CategoryControllerTests {
     @Test
     @WithMockUser(roles = "USER")
     @DisplayName("Attempt to get a category by non existing id")
-    public void getCategoryById_nonExistingId_returns404() throws Exception {
+    public void getCategoryById_nonExistingId_returnsNotFound() throws Exception {
         long nonExistingId = 999L;
 
         mockMvc.perform(get(BASE_URL + "/" + nonExistingId))
@@ -139,8 +137,8 @@ public class CategoryControllerTests {
     @DisplayName("Update a category")
     @Sql(scripts = "classpath:database/add-categories.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
     @Sql(scripts = "classpath:database/clear-categories.sql", executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
-    public void updateCategory_asAdmin_returns200() throws Exception {
-        CategoryDtoRequest req = testUtil.sampleRequest();
+    public void updateCategory_asAdmin_returnsUpdatedCategory() throws Exception {
+        CategoryDtoRequest req = TestUtil.sampleRequest();
         req.setName("Updated Name");
 
         MvcResult result = mockMvc.perform(put(BASE_URL + "/1")
@@ -148,7 +146,7 @@ public class CategoryControllerTests {
                         .content(objectMapper.writeValueAsString(req)))
                 .andReturn();
 
-        CategoryDtoResponse expected = testUtil.sampleResponse();
+        CategoryDtoResponse expected = TestUtil.sampleResponse();
         expected.setName("Updated Name");
 
         CategoryDtoResponse actual = objectMapper.readValue(
@@ -168,7 +166,7 @@ public class CategoryControllerTests {
     @DisplayName("Delete a category")
     @Sql(scripts = "classpath:database/add-categories.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
     @Sql(scripts = "classpath:database/clear-categories.sql", executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
-    public void deleteCategory_asAdmin_returns204() throws Exception {
+    public void deleteCategory_asAdmin_returnsEmptyTrue() throws Exception {
         MvcResult result = mockMvc.perform(delete(BASE_URL + "/1"))
                 .andReturn();
 
@@ -179,7 +177,7 @@ public class CategoryControllerTests {
     @Test
     @WithMockUser(roles = "USER")
     @DisplayName("Attempt to delete a category as user")
-    public void deleteCategory_asUser_returns403() throws Exception {
+    public void deleteCategory_asUser_returnsForbidden() throws Exception {
         mockMvc.perform(delete(BASE_URL + "/1"))
                 .andExpect(status().isForbidden());
     }
@@ -189,11 +187,11 @@ public class CategoryControllerTests {
     @DisplayName("Get all books by a category")
     @Sql(scripts = "classpath:database/add-books.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
     @Sql(scripts = "classpath:database/clear-books.sql", executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
-    public void getBooksByCategoryId_asUser_returns200() throws Exception {
+    public void getBooksByCategoryId_asUser_returnsAllBooksWithCategoryId1() throws Exception {
         MvcResult result = mockMvc.perform(get(BASE_URL + "/1/books"))
                 .andReturn();
 
-        BookDto expected = testUtil.sampleResponseDto();
+        BookDto expected = TestUtil.sampleResponseDto();
 
         String json = result.getResponse().getContentAsString();
 

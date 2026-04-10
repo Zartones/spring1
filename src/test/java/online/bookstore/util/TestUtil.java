@@ -1,4 +1,4 @@
-package online.bookstore;
+package online.bookstore.util;
 
 import online.bookstore.dto.book.BookDto;
 import online.bookstore.dto.book.CreateBookRequestDto;
@@ -10,7 +10,7 @@ import java.math.BigDecimal;
 import java.util.Set;
 
 public class TestUtil {
-    public CreateBookRequestDto sampleRequestDto() {
+    public static CreateBookRequestDto sampleRequestDto() {
         CreateBookRequestDto req = new CreateBookRequestDto();
         req.setTitle("Test Title");
         req.setAuthor("Test Author");
@@ -22,7 +22,7 @@ public class TestUtil {
         return req;
     }
 
-    public BookDto sampleResponseDto() {
+    public static BookDto sampleResponseDto() {
         BookDto dto = new BookDto();
         dto.setTitle("Test Title");
         dto.setAuthor("Test Author");
@@ -34,14 +34,14 @@ public class TestUtil {
         return dto;
     }
 
-    public CategoryDtoRequest sampleRequest() {
+    public static CategoryDtoRequest sampleRequest() {
         CategoryDtoRequest req = new CategoryDtoRequest();
         req.setName("Test Name");
         req.setDescription("Test Description");
         return req;
     }
 
-    public CategoryDtoResponse sampleResponse() {
+    public static CategoryDtoResponse sampleResponse() {
         CategoryDtoResponse res = new CategoryDtoResponse();
         res.setName("Test Name");
         res.setDescription("Test Description");
